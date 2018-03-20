@@ -59,7 +59,7 @@ In the 2000s, in Saxony-Anhalt, middle Germany, a street was build, called "Bund
 
 # load data
 ## data cannot be provided, sorry. It is designed as a csv-file with the columns:
-## Epoche -> epoch
+## Epoche (Neolithikum | Bronzezeit | Eisenzeit | undatiert) -> epoch (Neolithic | Bronze Age | Iron Age | not dated)
 ## Abschnitt (früh | mittel | spät) -> period (early | middle | late)
 ## Kultur -> culture
 ## Befundart (Siedlung | Gräberfeld) -> kind of feature (settlement | grave)
@@ -92,8 +92,10 @@ library(knitr)
 
 
 library(dplyr)
+# calculate number and percentages of features by epoch and period
 table <- siedlung_BefSchnitt %>% group_by(epoche,abschnitt) %>% arrange(epoche,abschnitt) %>% summarise(count = n())
 
+# calculate number and percentages of features by epoch and period and culture
 table2 <- siedlung_BefSchnitt %>% group_by(epoche, abschnitt, kultur) %>% arrange(epoche, abschnitt, kultur) %>% summarise(count = n())
 
 table$percentage <- table$count / sum(table$count)
@@ -103,7 +105,7 @@ table2$percentage <- table2$count / sum(table2$count)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
+# create nice readable table
 knitr::kable(table2[c(1, 3, 4)],
              col.names = c("Epoch", "Culture", "n settlement features"))
 
@@ -198,7 +200,7 @@ siedlung_sBZ_Bef_pp<- unique(siedlung_sBZ_Bef_pp) # delete duplicate point
 siedlung_sBZ_aeEZ_pp <- unique(siedlung_sBZ_aeEZ_pp) # delete duplicate point
 
 
-#calculate distance matrix, create a vector and sort this vector
+#calculate distance matrix, create a vector and sort this vector for different cultures
 siedlSnK_dist_v <- sort(as.vector(pairdist.ppp(siedlung_SnK_Bef_pp)))
 siedlSnK_dist_v <-subset(siedlSnK_dist_v, siedlSnK_dist_v > 0) # remove zeros
 siedlSnK_dist_df <- as.data.frame(siedlSnK_dist_v) # create data frame
@@ -225,7 +227,7 @@ siedlsBZ_dist_df_1000 <-subset(siedlsBZ_dist_df, siedlsBZ_dist_df > 0 & siedlsBZ
 
 siedlsBZ_aeEZ_dist_df_1000 <-subset(siedlsBZ_aeEZ_dist_df, siedlsBZ_aeEZ_dist_df > 0 & siedlsBZ_aeEZ_dist_df < 1000 )
 
-# create complete spatial random point distribution
+# create complete spatial random point distribution for comparison
 
 CSR <- rpoispp(0.01, win = owin(W)) # created inside the window of the excavation areas
 CSR_dist_v <- sort(as.vector(pairdist.ppp(CSR)))# distances
@@ -238,6 +240,7 @@ CSR_dist_df_1000 <-subset(CSR_dist_df, CSR_dist_df > 0 & CSR_dist_df < 1000 ) #s
 
 siedlSnK_dist_df_1000$n <-c(1:nrow(siedlSnK_dist_df_1000)) # as the vector has been sorted, the row gives the number how many have this or a smaller distance
 siedlSnK_dist_df_1000$prozent <-c(siedlSnK_dist_df_1000$n/nrow(siedlSnK_dist_df_1000)) # creates a proportion for comparison
+# repeat for all other cultures:
 
 siedlfBZ_dist_df_1000$n <-c(1:nrow(siedlfBZ_dist_df_1000))
 siedlfBZ_dist_df_1000$prozent <-c(siedlfBZ_dist_df_1000$n/nrow(siedlfBZ_dist_df_1000))
@@ -285,6 +288,8 @@ It is notable that the random distribution also has a peak in the beginning. Thi
 
 
 ```{r Distanzmatrizen2, echo=FALSE, fig.cap="KDE on the period-specific distances of settlement features to each other (up to 1000 m).", message=FALSE, warning=FALSE, cache=FALSE,  fig.height=8, fig.width=11,}
+
+# plot KDE on top of distance vectors. Silverman's Rule of Thumb is bandwidth
 
 ggplot() +
   geom_density(data = siedlSnK_dist_df_1000, aes(x = siedlSnK_dist_df_1000[,1], color = "1 SnK")) +
